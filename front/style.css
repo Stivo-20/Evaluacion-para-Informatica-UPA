@@ -1,0 +1,28 @@
+body{
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+main{
+    text-align: center;
+    margin-top: 50px;
+    background-color: #e5d7c3;
+    padding: 30px;
+    box-shadow: 0 4px 12px black;}
+nav{
+    margin-top: 20px;
+}
+.boton{
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 10px;
+    background-color: #007BFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
