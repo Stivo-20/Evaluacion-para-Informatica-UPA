@@ -137,7 +137,78 @@ app.post('/guardar_usuario', async (req, res) => {
         });
     }
 });
+/** 
+*@returns {Promise<Array<Object>>}
+*/
 
+async function reporteListadoUsuarios() {
+    
+    const query = `
+        SELECT ID, NOMBRE, TELEFONO, CORREO 
+        FROM USUARIO
+        ORDER BY ID ASC
+    `;
+    const [rows] = await pool.execute(query);
+    return rows;
+    
+    /*return [
+        { "id": 1, "nombre": "pepito", "telefono":"55554444", "correo": "pepito@ejemplo.com"},
+        { "id": 2, "nombre": "juan", "telefono": "24152311", "correo": "juan@ejemplo.com" }
+    ];*/
+}
+
+/**
+ * @returns {Promise<Array<Object>>}
+ */
+
+async function reporteConteoPorEstados() {
+    const query = `
+        SELECT EU.TITULO AS estado, COUNT(U.ID) AS conteo
+        FROM ESTADO_USUARIO EU
+        JOIN USUARIO U ON EU.ID = U.ESTADO_USUARIO_ID
+        GROUP BY EU.TITULO
+        ORDER BY conteo DESC
+    `;
+    const [rows] = await pool.execute(query);
+    return rows;
+    /*return [
+        { "estado": "Activo", "conteo": 50 },
+        { "estado": "Inactivo", "conteo": 15 }
+    ];*/
+}
+
+const ReporteMapper = {
+    'listado_usuarios': reporteListadoUsuarios,
+    'conteo_estados': reporteConteoPorEstados
+};
+
+
+app.get('/ejecutar_reporte/:reporte', async (req, res) => {
+    const reporteCodigo = req.params.reporte;
+    const funcionReporte = ReporteMapper[reporteCodigo];
+
+    if (!funcionReporte) {
+        console.error(`Error 500: Codigo de reporte no encontrado: ${reporteCodigo}`);
+        return res.status(500).json({ 
+            error: "Error inesperado",
+            detalle: `Código de reporte no encontrado: '${reporteCodigo}' no es valido`,
+            codigo: reporteCodigo
+    });
+}try {
+        const datosReporte = await funcionReporte();
+        res.status(200).json({ 
+            mensaje: "Reporte ejecutado con éxito.",
+            reporte: reporteCodigo, 
+            datos: datosReporte });
+    } catch (error) {
+        console.error(`Error al ejecutar el reporte '${reporteCodigo}':`, error);
+        res.status(500).json({
+            error: "Error al ejecutar el reporte.",
+            detalle: "Ocurrio un error al procesar la logica del reporte.",
+            mensajeTecnico: error.message
+        });
+    }
+});
 
 connectDB().then(() => {
     app.listen(port, () => {

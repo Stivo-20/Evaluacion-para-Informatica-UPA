@@ -22,3 +22,14 @@ select * from ESTADO_USUARIO;
  );
  
 select * from USUARIO;
+
+SELECT ID, NOMBRE, TELEFONO, CORREO 
+        FROM USUARIO
+        ORDER BY ID ASC;
+        
+        SELECT EU.TITULO AS estado, COUNT(U.ID) AS conteo
+        FROM ESTADO_USUARIO EU
+        JOIN USUARIO U ON EU.ID = U.ESTADO_USUARIO_ID
+        GROUP BY EU.TITULO
+        ORDER BY conteo DESC
+        
