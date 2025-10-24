@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="contenedor-principal">
+        <h1>Reportes de Usuarios</h1>
+        <div class="contenedor-reporte">
+            <div class="lista-reporte">
+            <h2>Lista de Reportes</h2>
+            <ul class="reporte-lista">
+                <li data-codigo = "listado_usuarios">Listado de Usuarios</li>
+                <li data-codigo = "creados_hoy">Usuarios creados hoy</li>
+                <li data-codigo = "creados_ayer">Usuarios creados ayer</li>
+                <li data-codigo = "conteo_estados">Conteo de usuarios por estado</li>
+                <li data-codigo = "usuarios_ultimos">Usuarios creados en los últimos
+            </ul>
+        </div>
+
+        <div class="mensaje-inicial">
+            <h2>Contenido del reporte</h2>
+            <p id="contenido-reporte">Seleccione un reporte de la lista para ver su contenido.</p>
+            <div id="data-reporte"></div>
+        </div>
+        </div>
+    </div>
+    <a href="indice.html" class="volver"> Volver al Inicio</a>
+    <script src="script.js"></script>
+</body>
+</html>

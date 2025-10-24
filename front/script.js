@@ -182,3 +182,74 @@ function mostrarError(input, span, mensaje) {
         }
 }
 });
+
+// -------------------------------- Script Reportes --------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+    const listaReportes = document.getElementById('reporte-lista');
+    const dataReporteDiv = document.getElementById('data-reporte');
+    const mensajeInicial = document.getElementById('mensaje-inicial');
+
+    listaReportes.addEventListener('click', (e) => {
+        const item = e.target.closest('li');
+        if (!item) return;
+
+        listaReportes.querySelectorAll('li').forEach(li => li.classList.remove('activo'));
+        i.classList.add('activo');
+
+        const codigoReporte = item.dataset.codigo;
+        fetchReporte(codigoReporte);
+    });
+
+    /**
+     * 
+     * @param {string} codigo 
+     */
+    async function fetchReporte(codigo) {
+        mensajeInicial.style.display = 'none';
+        dataReporteDiv.innerHTML = 'Cargando reporte...';
+        dataReporteDiv.classList.remove('error');
+        try {
+            const url = `http://localhost:3000/ejecutar_reporte/${codigo}`;
+            const respuesta = await fetch(url);
+            const resultado = await respuesta.json();
+
+            if (respuesta.ok) {
+                displayReporteData(resultado.data);
+            } else {
+                throw new Error(resultado.detalle || 'Error desconocido al obtener el reporte.');
+            }
+        } catch (error) {
+            console.error('Error al obtener el reporte:', error);
+            dataReporteDiv.innerHTML = `<p>Error al obtener el reporte: ${error.message}</p>`;
+            dataReporteDiv.classList.add('error');
+        }
+
+    }
+
+    /**
+     * 
+     * @param {Array<Object>} datos 
+     */
+    function displayReporteData(datos) {
+        if (datos.length === 0) {
+            dataReporteDiv.innerHTML = 'No hay datos para mostrar en este reporte.';
+            return;
+        }
+        const headers = Object.keys(datos[0]);
+        let html = '<table><thead><tr>';
+        headers.forEach(header => {
+            const clearHeader = header.replace('/_/g',' ').toUpperCase();
+            html += `<th>${clearHeader}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+        datos.forEach(fila => {
+            html += '<tr>';
+            headers.forEach(header => {
+                html += `<td>${fila[header]}</td>`;
+            });
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        dataReporteDiv.innerHTML = html;
+    }
+});

@@ -29,11 +29,11 @@ async function connectDB() {
     let connection;
     try {
         pool = mysql.createPool(dbConfig);
-        console.log(`✔️ Conexión a la base de datos '${DB_NAME}' establecida.`);
+        console.log(` Conexión a la base de datos '${DB_NAME}' establecida.`);
         connection = await pool.getConnection();
         connection.release();
     } catch (error) {
-        console.error("❌ Error al conectar con MySQL:", error.message);
+        console.error(" Error al conectar con MySQL:", error.message);
         process.exit(1); 
     }
 }
@@ -137,6 +137,58 @@ app.post('/guardar_usuario', async (req, res) => {
         });
     }
 });
+
+function obtenerFechaMySQL(diasAtras = 0) {
+    const ahora = new Date();
+    ahora.setDate(ahora.getDate() - diasAtras); 
+    const anio = ahora.getFullYear();
+    const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+    const dia = String(ahora.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
+}
+
+/**
+ * @returns {Promise<Array<Object>>}
+ */
+async function reporteUsuariosCreadosHoy() {
+    const fechaHoy = obtenerFechaMySQL(0);
+    const query = `
+        SELECT u.ID, u.NOMBRE, u.TELEFONO, u.CORREO, eu.TITULO AS ESTADO 
+            FROM USUARIO u 
+            JOIN  ESTADO_USUARIO eu ON u.ESTADO_USUARIO_ID = eu.ID 
+            WHERE DATE(u.CREACION) = ? 
+            ORDER BY u.CREACION DESC;`
+    const [rows] = await pool.execute(query, [fechaHoy]);
+    return rows;
+}
+
+/**
+ * @returns {Promise<Array<Object>>}
+ */
+async function reporteUsuariosCreadosAyer() {
+    const fechaAyer = obtenerFechaMySQL(1);
+    const query = `
+        SELECT u.ID, u.NOMBRE, u.TELEFONO, u.CORREO, eu.TITULO AS ESTADO 
+            FROM USUARIO u 
+            JOIN  ESTADO_USUARIO eu ON u.ESTADO_USUARIO_ID = eu.ID 
+            WHERE DATE(u.CREACION) = ? 
+            ORDER BY u.CREACION DESC;`
+    const [rows] = await pool.execute(query, [fechaAyer]);
+    return rows;
+}
+
+async function reporteUsuariosUltimos() {
+    const query = `
+        SELECT u.ID, u.NOMBRE, u.TELEFONO, u.CORREO, eu.titulo AS ESTADO 
+            FROM USUARIO u
+            JOIN ESTADO_USUARIO eu ON u.ESTADO_USUARIO_ID = eu.id
+            ORDER BY u.NOMBRE ASC`
+    ;
+    const [rows] = await pool.execute(query);
+    return rows;
+}
+
+
 /** 
 *@returns {Promise<Array<Object>>}
 */
@@ -150,11 +202,6 @@ async function reporteListadoUsuarios() {
     `;
     const [rows] = await pool.execute(query);
     return rows;
-    
-    /*return [
-        { "id": 1, "nombre": "pepito", "telefono":"55554444", "correo": "pepito@ejemplo.com"},
-        { "id": 2, "nombre": "juan", "telefono": "24152311", "correo": "juan@ejemplo.com" }
-    ];*/
 }
 
 /**
@@ -171,15 +218,14 @@ async function reporteConteoPorEstados() {
     `;
     const [rows] = await pool.execute(query);
     return rows;
-    /*return [
-        { "estado": "Activo", "conteo": 50 },
-        { "estado": "Inactivo", "conteo": 15 }
-    ];*/
 }
 
 const ReporteMapper = {
     'listado_usuarios': reporteListadoUsuarios,
-    'conteo_estados': reporteConteoPorEstados
+    'conteo_estados': reporteConteoPorEstados,
+    'creados_hoy': reporteUsuariosCreadosHoy,
+    'creados_ayer': reporteUsuariosCreadosAyer,
+    'usuarios_ultimos': reporteUsuariosUltimos
 };
 
 
@@ -199,7 +245,7 @@ app.get('/ejecutar_reporte/:reporte', async (req, res) => {
         res.status(200).json({ 
             mensaje: "Reporte ejecutado con éxito.",
             reporte: reporteCodigo, 
-            datos: datosReporte });
+            data: datosReporte });
     } catch (error) {
         console.error(`Error al ejecutar el reporte '${reporteCodigo}':`, error);
         res.status(500).json({
